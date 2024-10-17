@@ -1,3 +1,4 @@
+using Assignment.Constants;
 using Assignment.Data;
 using Assignment.Dto;
 using Assignment.Mappers;
@@ -18,9 +19,8 @@ public class SyncDataJob(
     {
         logger.LogInformation("Starting sync data job...");
 
-        const string subStoreIndexName = "search-sub-stores";
-
-        await CreateSubStoreIndexIfNotExistsAsync(subStoreIndexName);
+        
+        await CreateSubStoreIndexIfNotExistsAsync();
 
         await CreateSearchLogIndexIfNotExistsAsync();
 
@@ -47,7 +47,7 @@ public class SyncDataJob(
 
         foreach (var store in data)
         {
-            bulkDescriptor.Index<SubStoreDto>(op => op.Document(store).Index(subStoreIndexName));
+            bulkDescriptor.Index<SubStoreDto>(op => op.Document(store).Index(IndexNameConstants.SubStoreIndexName));
         }
 
         var response = await elasticClient.BulkAsync(bulkDescriptor);
@@ -63,8 +63,9 @@ public class SyncDataJob(
         }
     }
 
-    private async Task CreateSubStoreIndexIfNotExistsAsync(string indexName)
+    private async Task CreateSubStoreIndexIfNotExistsAsync()
     {
+        var indexName = IndexNameConstants.SubStoreIndexName;
         logger.LogInformation("Checking if index {index} exists.", indexName);
 
         var existsResponse = await elasticClient.Indices.ExistsAsync(indexName);
@@ -92,7 +93,7 @@ public class SyncDataJob(
 
     private async Task CreateSearchLogIndexIfNotExistsAsync()
     {
-        const string indexName = "search-logs";
+        var indexName = IndexNameConstants.SearchLogIndexName;
         logger.LogInformation("Checking if index {index} exists.", indexName);
 
         var existsResponse = await elasticClient.Indices.ExistsAsync(indexName);
